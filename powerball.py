@@ -1,141 +1,81 @@
 import random
+from typing import Tuple, List
 
+def generate_powerball_numbers() -> Tuple[List[int], int]:
+    """
+    Generate a set of Powerball numbers consisting of 5 unique white balls and 1 power ball.
 
-def generate_powerball_numbers():
+    Returns:
+        Tuple[List[int], int]: A tuple containing a list of 5 sorted unique white balls and 1 power ball.
+    """
     white_balls = random.sample(range(1, 70), 5)
     power_ball = random.randint(1, 26)
     return sorted(white_balls), power_ball
 
+def get_valid_number(prompt: str, min_val: int, max_val: int) -> int:
+    """
+    Request a valid number from the user within a specified range.
 
-def is_valid_powerball_number(number):
-    return 1 <= number <= 69
+    Args:
+        prompt (str): The message displayed to the user.
+        min_val (int): The minimum valid value.
+        max_val (int): The maximum valid value.
 
-
-def is_valid_powerball_power_number(number):
-    return 1 <= number <= 26
-
-
-def get_valid_powerball_number(prompt):
+    Returns:
+        int: A valid number entered by the user.
+    """
     while True:
         try:
             number = int(input(prompt))
-            if is_valid_powerball_number(number):
+            if min_val <= number <= max_val:
                 return number
             else:
-                print(
-                    "Invalid number. Please enter a valid white ball number between 1 and 69."
-                )
+                print(f"Invalid number. Please enter a number between {min_val} and {max_val}.")
         except ValueError:
             print("Invalid input. Please enter a valid number.")
 
+def get_user_or_auto_input() -> Tuple[List[int], int]:
+    """
+    Allow the user to choose between manually entering Powerball numbers or generating them automatically.
 
-def get_valid_powerball_power_number():
+    Returns:
+        Tuple[List[int], int]: A tuple containing a list of 5 sorted white balls and 1 power ball.
+    """
     while True:
-        try:
-            number = int(input("Enter your Powerball number (1 - 26): "))
-            if is_valid_powerball_power_number(number):
-                return number
-            else:
-                print(
-                    "Invalid number. Please enter a valid Powerball number between 1 and 26."
-                )
-        except ValueError:
-            print("Invalid input. Please enter a valid number.")
+        choice = input("Do you want to enter your numbers (enter '1') or generate them automatically (enter '2')? ")
+        if choice == '1':
+            white_balls = [get_valid_number(f"White ball {i + 1} (1-69): ", 1, 69) for i in range(5)]
+            power_ball = get_valid_number("Enter your Powerball number (1-26): ", 1, 26)
+            return sorted(white_balls), power_ball
+        elif choice == '2':
+            return generate_powerball_numbers()
+        else:
+            print("Invalid choice. Please enter '1' or '2'.")
 
+def simulate_powerball_jackpot(target_white_balls: List[int]) -> None:
+    """
+    Simulate Powerball jackpot draws until the target white balls are drawn, displaying the number of attempts and total cost.
 
-def number_to_words(num):
-    # Define dictionaries for number names
-    ones = ["", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
-    teens = [
-        "",
-        "eleven",
-        "twelve",
-        "thirteen",
-        "fourteen",
-        "fifteen",
-        "sixteen",
-        "seventeen",
-        "eighteen",
-        "nineteen",
-    ]
-    tens = [
-        "",
-        "ten",
-        "twenty",
-        "thirty",
-        "forty",
-        "fifty",
-        "sixty",
-        "seventy",
-        "eighty",
-        "ninety",
-    ]
-    thousands = ["", "thousand", "million", "billion"]
-
-    if num == 0:
-        return "zero"
-
-    parts = []
-    part_index = 0
-
-    while num > 0:
-        part = num % 1000
-        if part > 0:
-            part_str = ""
-            if part >= 100:
-                part_str += ones[part // 100] + " hundred"
-                part %= 100
-                if part > 0:
-                    part_str += " and "
-            if 11 <= part <= 19:
-                part_str += teens[part - 10]
-                part = 0
-            elif part >= 20:
-                part_str += tens[part // 10]
-                part %= 10
-                if part > 0:
-                    part_str += " " + ones[part]
-            elif part > 0:
-                part_str += ones[part]
-            parts.append(part_str.strip() + " " + thousands[part_index])
-
-        num //= 1000
-        part_index += 1
-
-    return " ".join(parts[::-1]).strip()
-
-
-def simulate_powerball_jackpot(powerball_number):
+    Args:
+        target_white_balls (List[int]): The list of white balls to match for winning the jackpot.
+    """
     counter = 1
+    ticket_price = 5  # Ticket price in dollars
     while True:
         white_balls, power_ball = generate_powerball_numbers()
-
-        print(
-            f"Drawing {counter}: Powerball numbers: {white_balls}, Powerball: {power_ball}"
-        )
-
-        if white_balls == powerball_number:
-            jackpot = (counter * 5) / 2
-            cost = number_to_words(counter * 5)
-            counter = number_to_words(counter)
-            print(f"Congratulations! You've hit the jackpot!")
-            print(f"{counter} drawings!")
-            print(f"Estimated jackpot size is: ${jackpot}")
+        if counter % 10000 == 0:
+            print(f"Attempt {counter}: Still trying to win...")
+        if white_balls == target_white_balls:
+            total_spent = counter * ticket_price
+            print(f"\nCongratulations! You've hit the jackpot on drawing {counter}!")
+            print(f"Your numbers: {target_white_balls}, Powerball: {power_ball}")
+            print(f"Total amount spent on tickets: ${total_spent:,}")
             break
-
         counter += 1
 
-
 if __name__ == "__main__":
-    print("Enter 5 unique white ball numbers between 1 and 69:")
-    white_balls = [
-        get_valid_powerball_number(f"White ball {i + 1}: ") for i in range(5)
-    ]
-
-    power_ball = get_valid_powerball_power_number()
-
-    powerball_number = sorted(white_balls)
-
-    print("Your Powerball numbers:", white_balls, "Powerball:", power_ball)
-
-    simulate_powerball_jackpot(powerball_number)
+    print("Powerball Number Generator")
+    user_white_balls, user_power_ball = get_user_or_auto_input()
+    
+    print(f"\nYour Powerball numbers: {user_white_balls}, Powerball: {user_power_ball}")
+    simulate_powerball_jackpot(user_white_balls)
